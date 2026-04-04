@@ -1,24 +1,26 @@
-import express from 'express';
-import type { Request, Response } from 'express';
+import "reflect-metadata";
+import { AppRoutes } from "./presentation/routes.js";
+import { Server } from "./presentation/server.js"
+import { envs } from "./config/envs.js";
+import { PostgresDatabase } from "./data/index.js";
 
-const app = express();
-app.use(express.json())
-
-app.get('/', (req: Request, res: Response) => {
-    console.log("Hello from the console!")
-    res.send("Hello from the server!")
-});
-
-app.post('/', (req: Request, res: Response) => {
-    console.log(req.body)
-    res.status(200).json({
-        message: "Post request to the homepage"
+async function main() {
+    const postgres = new PostgresDatabase({
+        username: envs.DATABASE_USERNAME,
+        password: envs.DATABASE_PASSWORD,
+        host: envs.DATABASE_HOST,
+        port: envs.DATABASE_PORT,
+        database: envs.DATABASE_NAME,
     })
-})
 
-const port = 3000
+    await postgres.connect();
 
-app.listen(port, () => {
-    console.log(`server is runnig on port ${port}`)
-})
+    const server = new Server({
+        port: envs.PORT,
+        routes: AppRoutes.routes
+    })
 
+    await server.start();
+}
+
+main();
