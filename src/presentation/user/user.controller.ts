@@ -4,7 +4,9 @@ import type { FinderUsersService } from "./services/finder-users.service.js"
 import type { FinderUserService } from "./services/finder-user.service.js"
 import type { UpdateUserService } from "./services/update-user.service.js"
 import type { DeleteUserService } from "./services/delete-user.service.js"
-import { CustomError, UserRegisterDto, UserUpdateDto } from "../../domain/index.js"
+import { CustomError, UserLoginDto, UserRegisterDto, UserUpdateDto } from "../../domain/index.js"
+import type { LoginUserService } from "./services/login-user.service.js"
+import { envs } from "../../config/envs.js"
 
 
 export class UserController {
@@ -14,6 +16,7 @@ export class UserController {
     private readonly finderUser: FinderUserService,
     private readonly updateUser: UpdateUserService,
     private readonly deleteUser: DeleteUserService,
+    private readonly loginUser: LoginUserService,
   ) {}
 
   private handleError = (error: unknown, res: Response) => {
@@ -67,16 +70,16 @@ export class UserController {
 
   update = (req: Request<{ id: string }>, res: Response) => {
     const { id } = req.params
-    const [error, UserRegisterDto ] = UserUpdateDto.excecute(req.body)
+    const [error, userUpdateDto ] = UserUpdateDto.execute(req.body)
 
-    if(!error) {
+    if(error) {
       return res.status(422).json({
         error: error 
       })
     }
 
     this.updateUser
-    .execute(id, UserRegisterDto!)
+    .execute(id, userUpdateDto!)
     .then((user) => res.status(200).json(user))
     .catch((err) => this.handleError(err, res))
   }
@@ -88,6 +91,29 @@ export class UserController {
     this.deleteUser
     .execute(id)
     .then((user) => res.status(204).json(null))
+    .catch((err) => this.handleError(err, res))
+  }
+
+  login = (req: Request<{},{},{email: string, password: string}>, res: Response) => {
+    const [error, userLoginDto] = UserLoginDto.execute(req.body)
+
+    if(error) {
+      return res.status(422).json({
+        error
+      })
+    }
+
+    this.loginUser
+    .execute(userLoginDto!)
+    .then((data) => {
+        res.cookie('token', data.token, {
+        httpOnly: true,
+        secure: envs.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 3*60*60*1000
+      })
+      return res.status(200).json({ data: data.user })
+    })
     .catch((err) => this.handleError(err, res))
   }
 

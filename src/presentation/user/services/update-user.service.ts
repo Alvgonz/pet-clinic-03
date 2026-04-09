@@ -23,15 +23,19 @@ export class UpdateUserService {
             };
         } catch(err: any) {
 
+            if(err instanceof CustomError) {
+                throw err;
+            }
+
             if(err.code === '23505') {
-                throw CustomError.conflict("Email already in use")
+                throw CustomError.conflict("Email already in use");
             }
 
             if(err.code === '22P02') {
-                throw CustomError.unprocessableEntity("Invalid data type")
+                throw CustomError.unprocessableEntity("Invalid data type");
             }
 
-            throw CustomError.internalServer("Error trying to update user")
+            throw CustomError.internalServer("Error trying to update user");
         }
     }
 }

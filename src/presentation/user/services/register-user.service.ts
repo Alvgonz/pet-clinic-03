@@ -1,3 +1,4 @@
+import { encriptAdapter } from "../../../config/bcrypt.adapter.js";
 import { User } from "../../../data/postgres/models/user.model.js";
 import { CustomError, type UserRegisterDto } from "../../../domain/index.js";
 
@@ -7,7 +8,7 @@ export class RegisterUserService {
 
         user.name = userData.name;
         user.email = userData.email;
-        user.password = userData.password;
+        user.password = this.encriptPassword(userData.password);
         user.phone_number = userData.phone_number;
 
         try{
@@ -27,5 +28,9 @@ export class RegisterUserService {
 
             throw CustomError.internalServer("Error trying to create user")
         }
+    }
+
+    private encriptPassword(password: string): string {
+        return encriptAdapter.hash(password);
     }
 }

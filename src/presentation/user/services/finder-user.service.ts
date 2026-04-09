@@ -14,8 +14,15 @@ export class FinderUserService {
         }
 
         return user;
-       } catch(err) {
-        console.log(err);
+       } catch(err: any) {
+        if(err instanceof CustomError) {
+            throw err
+        }
+
+        if(err.code === '22P02') {
+            throw CustomError.badRequest("Invalid user id")
+        }
+
         throw CustomError.internalServer("Error trying to fetch user")
        }
         

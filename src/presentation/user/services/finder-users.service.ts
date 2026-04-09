@@ -5,7 +5,7 @@ export class FinderUsersService {
     async execute() {
         try{
             const users = await User.find( {
-                select: ["id","name", "email", "phone_number", "role", "status"]
+                select: ["id","name", "email", "phone_number", "role", "status", "password"]
              });
             return users;
         } catch(err) {

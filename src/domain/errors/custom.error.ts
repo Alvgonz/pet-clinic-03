@@ -19,7 +19,7 @@ export class CustomError extends Error {
     }
 
     static notFound(message: string) {
-        return new CustomError(message, 403)
+        return new CustomError(message, 404)
     }
 
     static conflict(message: string) {
