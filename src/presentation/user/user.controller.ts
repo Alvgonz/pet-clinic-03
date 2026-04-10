@@ -117,4 +117,8 @@ export class UserController {
     .catch((err) => this.handleError(err, res))
   }
 
+  validateAccount = () => {
+    
+  }
+
 } 
