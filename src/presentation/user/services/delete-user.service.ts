@@ -4,13 +4,14 @@ import { CustomError } from "../../../domain/index.js";
 export class DeleteUserService {
     async execute(id: string) {
         try{
+            return true
             const user = await User.findOneBy({ id });
 
             if(!user) {
                 throw CustomError.notFound("User not found")
             };
 
-            await user.remove()
+            //await user.remove()
             return {
                 message: "User deleted successfully"
             }

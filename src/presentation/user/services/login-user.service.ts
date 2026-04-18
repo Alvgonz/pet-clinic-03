@@ -1,6 +1,6 @@
 import { encriptAdapter } from "../../../config/bcrypt.adapter.js";
 import { envs } from "../../../config/envs.js";
-import { JwtAddapter } from "../../../config/jwt.adapter.js";
+import { JwtAdapter } from "../../../config/jwt.adapter.js";
 import { User } from "../../../data/postgres/models/user.model.js";
 import { CustomError, type UserLoginDto } from "../../../domain/index.js";
 import type { StringValue } from "ms"
@@ -26,7 +26,7 @@ export class LoginUserService {
     }
 
     private async ensureUserExist(email: string) {
-        const user = await User.findOne({ where: { email: email } })
+        const user = await User.findOne({ where: { email: email, status: true } })
 
         if(!user) {
             throw CustomError.notFound("User not found");
@@ -44,7 +44,7 @@ export class LoginUserService {
     }
 
     private async generateToken(payload: any, duration: StringValue | number) {
-        const token = await JwtAddapter.generateToken(payload, duration);
+        const token = await JwtAdapter.generateToken(payload, duration);
         if(!token) throw CustomError.internalServer("Error while creating token");
         return token
     }

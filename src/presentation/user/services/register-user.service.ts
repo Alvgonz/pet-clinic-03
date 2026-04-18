@@ -1,6 +1,6 @@
 import { encriptAdapter } from "../../../config/bcrypt.adapter.js";
 import { envs } from "../../../config/envs.js";
-import { JwtAddapter } from "../../../config/jwt.adapter.js";
+import { JwtAdapter } from "../../../config/jwt.adapter.js";
 import { User } from "../../../data/postgres/models/user.model.js";
 import { CustomError, type UserRegisterDto } from "../../../domain/index.js";
 import type { EmailService } from "../../common/services/email.service.js";
@@ -19,7 +19,7 @@ export class RegisterUserService {
 
         try{
             await user.save();
-            this.sendLinkToEmailToValidateAccount(userData.email);
+            await this.sendLinkToEmailToValidateAccount(userData.email);
             return {
                 message: "User created successfully"
             }
@@ -38,19 +38,46 @@ export class RegisterUserService {
 
     }
 
+    private async findUserByEmail(email: string) {
+        const user = await User.findOne({ where: {email: email}});
+        if(!user) throw CustomError.internalServer("Email not registered in database");
+            return user;
+    }
+
+    public validateAccount = async (token: string) => {
+        const payload = await JwtAdapter.validateToken(token);
+        if(!payload) throw CustomError.badRequest("Invalid token")
+        
+        const { email } = payload as { email: string };
+        if(!email) throw CustomError.internalServer('Email not found in token');
+
+        const user = await this.findUserByEmail(email);
+        user.status = true;
+
+        try {
+            await user.save();
+
+            return {
+                message: "User activated"
+            }
+        } catch(err) {
+            throw CustomError.internalServer("Something went wrong")
+        }
+    }
+
     private encriptPassword(password: string): string {
         return encriptAdapter.hash(password);
     }
 
     private sendLinkToEmailToValidateAccount = async (email: string) => {
-        const token = await JwtAddapter.generateToken({ email }, "300s")
+        const token = await JwtAdapter.generateToken({ email }, "300s")
         if(!token) throw CustomError.internalServer("Error getting token")
 
         const link = `http://${envs.WEBSERVICE_URL}/api/users/validate-account/${token}`;
         const html = `
-        <h1>VAlidate your email</h1>
+        <h1>Validate your email</h1>
         <p>Click  to validate your account</p>
-        <a href=${link}>Validate accoun: ${email}t</a>
+        <a href=${link}>Validate account: ${email}</a>
         `
         const isSent = this.emailService.sendEmail({
             to: email,
@@ -58,5 +85,6 @@ export class RegisterUserService {
             htmlBody: html,
 
         })
+        if(!isSent) throw CustomError.internalServer("Email could not be sent");
     }
 }

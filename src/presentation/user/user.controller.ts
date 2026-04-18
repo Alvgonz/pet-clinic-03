@@ -1,11 +1,7 @@
 import type { Request, Response } from "express"
-import { RegisterUserService} from "./services/register-user.service.js"
-import type { FinderUsersService } from "./services/finder-users.service.js"
-import type { FinderUserService } from "./services/finder-user.service.js"
-import type { UpdateUserService } from "./services/update-user.service.js"
-import type { DeleteUserService } from "./services/delete-user.service.js"
+import type { DeleteUserService, FinderUserService, FinderUsersService, LoginUserService, RegisterUserService, UpdateUserService } from "./services/index.js"
+
 import { CustomError, UserLoginDto, UserRegisterDto, UserUpdateDto } from "../../domain/index.js"
-import type { LoginUserService } from "./services/login-user.service.js"
 import { envs } from "../../config/envs.js"
 
 
@@ -36,9 +32,7 @@ export class UserController {
 
     const [error, userRegisterDto] = UserRegisterDto.excecute(req.body)
 
-    if(error) return res.status(422).json({
-      message: error
-    })
+    if(error) return CustomError.conflict(error);
 
     this.registerUser
     .execute(userRegisterDto!)
@@ -61,6 +55,7 @@ export class UserController {
 
   findOne = (req: Request<{ id: string }>, res: Response) => {
     const { id } = req.params;
+    console.log((req as any).sessionUser);
 
     this.finderUser
     .execute(id)
@@ -117,8 +112,11 @@ export class UserController {
     .catch((err) => this.handleError(err, res))
   }
 
-  validateAccount = () => {
-    
-  }
+  validateAccount = (req: Request<{ token: string }>, res: Response) => {
+    const { token } = req.params;
 
+    this.registerUser.validateAccount(token)
+    .then(() => res.send("Email validated successfully"))
+    .catch((err) => this.handleError(err, res))
+  }
 } 

@@ -9,6 +9,8 @@ import { DeleteUserService } from "./services/delete-user.service.js";
 import { LoginUserService } from "./services/login-user.service.js";
 import { EmailService } from "../common/services/email.service.js";
 import { envs } from "../../config/envs.js";
+import { AuthMiddleware } from "../common/middlewares/auth.middleware.js";
+import { UserRole } from "../../data/postgres/models/user.model.js";
 
 export class UserRoutes {
   static get routes(): RouterType {
@@ -23,13 +25,15 @@ export class UserRoutes {
     
     const controller = new UserController(registerUser,finderUsers,finderUser,updateUser,deleteUser,loginUser);
 
-    router.get("/", controller.findAll);
     router.post("/register", controller.register);
-    router.post("/login", controller.login)
+    router.post("/login", controller.login);
+    router.get("/validate-account/:token", controller.validateAccount);
+
+    router.use(AuthMiddleware.protect);
+    router.get("/", controller.findAll);
     router.get("/:id", controller.findOne);
     router.patch("/update/:id", controller.update);
-    router.delete("/delete/:id", controller.delete);
-    router.get("/validate-account/:token", controller.validateAccount)
+    router.delete("/delete/:id", AuthMiddleware.restrictTo(UserRole.ADMIN) ,controller.delete);
 
     return router;
   }

@@ -1,8 +1,12 @@
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Pet, type Pet as PetType } from "./pet.model.js";
+import { Appointment, type Appointment as AppointmentType } from "./appointment.model.js";
+import { Doctor, type Doctor as DoctorType } from "./doctor.model.js";
 
 export enum UserRole {
     USER = "user",
-    ADMIN = "admin"
+    ADMIN = "admin",
+    DOCTOR = "doctor",
 }
 
 @Entity()
@@ -53,5 +57,15 @@ export class User extends BaseEntity {
         nullable: false
     })
     created_at: Date
+
+    @OneToMany(() => Pet, (pet) => pet.user )
+    @JoinColumn({ name: "owner" })
+    pet: PetType
+    
+    @OneToMany(() => Appointment, (appointment) => appointment.user)
+    appointment: AppointmentType[]
+
+    @OneToOne(() => Doctor, (doctor) => doctor.user)
+    doctor: DoctorType
 
 }
