@@ -20,13 +20,13 @@ export class Pet extends BaseEntity {
     @Column("boolean", { default: true, nullable: false })
     status: boolean
 
-    @ManyToOne(() => User, user => user.pet)
+    @ManyToOne(() => User, user => user.pets)
     user: UserType
 
     @OneToMany(() => AppointmentType, (appointment) => appointment.pet)
     appointment: AppointmentType
 
-    @OneToOne(() => Species, (species) => species.pet)
+    @OneToOne(() => Species, (species) => species.pets)
     @JoinColumn({ name: 'species_id'})
     species: SpeciesType
 }

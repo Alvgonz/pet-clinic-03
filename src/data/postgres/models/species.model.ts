@@ -4,11 +4,11 @@ import { Pet, type Pet as PetType } from "./pet.model.js";
 @Entity()
 export class Species extends BaseEntity {
     @PrimaryGeneratedColumn("uuid")
-    id: number
+    id: string
 
     @Column("varchar", { length: 30, nullable: false , unique: true})
     name: string
 
     @OneToOne(() => Pet, (pet) => pet.species)
-    pet: PetType
+    pets: PetType
 }

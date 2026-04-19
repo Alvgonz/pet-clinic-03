@@ -60,7 +60,7 @@ export class User extends BaseEntity {
 
     @OneToMany(() => Pet, (pet) => pet.user )
     @JoinColumn({ name: "owner" })
-    pet: PetType
+    pets: PetType
     
     @OneToMany(() => Appointment, (appointment) => appointment.user)
     appointment: AppointmentType[]

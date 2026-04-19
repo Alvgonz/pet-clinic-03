@@ -24,6 +24,7 @@ export class PetController {
 
     create = (req: Request, res: Response) => {
         const [error, createPetDto] = CreatePetDto.execute(req.body)
+        const user = (req as any).sessionUser
 
         if(error) {
             return res.status(422).json({
@@ -31,7 +32,8 @@ export class PetController {
             })
         }
 
-        this.createPetService.execute(createPetDto!)
+
+        this.createPetService.execute(createPetDto!, user)
         .then((data) => res.status(201).json({
             message: "Pet created successfully",
             pet: data
@@ -40,9 +42,12 @@ export class PetController {
     }
 
     findAll = (req: Request, res: Response) => {
-        this.findPetsService.execute()
+
+        const user = (req as any).sessionUser
+
+        this.findPetsService.execute(user.id)
         .then((data) => res.status(200).json({
-            pets: data
+            user: data
         }))
         .catch((err) => this.handleError(err, res));
     }
